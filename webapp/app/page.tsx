@@ -84,24 +84,26 @@ export default function HomePage() {
 
         <main className="chat-main">
           <div className="chat-messages">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                className={`chat-row ${
-                  message.from === "user" ? "chat-row-user" : "chat-row-bot"
-                }`}
-              >
+            {messages.map(message => {
+              const isUser = message.from === "user";
+              return (
                 <div
-                  className={`chat-bubble ${
-                    message.from === "user"
-                      ? "chat-bubble-user"
-                      : "chat-bubble-bot"
-                  }`}
+                  key={message.id}
+                  className={`chat-row ${isUser ? "chat-row-user" : "chat-row-bot"}`}
                 >
-                  {message.text}
+                  <div
+                    className={`chat-bubble ${
+                      isUser ? "chat-bubble-user" : "chat-bubble-bot"
+                    }`}
+                  >
+                    {message.text}
+                    <span className="chat-meta">
+                      {isUser ? "Kamu" : "Bot • n8n + OpenAI"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {error && <div className="chat-error">{error}</div>}
         </main>

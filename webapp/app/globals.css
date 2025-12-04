@@ -48,11 +48,11 @@ body {
 
 .chat-container {
   width: 100%;
-  max-width: 960px;
-  min-height: 520px;
+  max-width: 1180px;
+  min-height: 640px;
   background: radial-gradient(circle at top left, #0f172a, #020617 55%);
   border-radius: 1.5rem;
-  padding: 1.5rem;
+  padding: 2rem;
   box-shadow:
     0 24px 80px rgba(15, 23, 42, 0.9),
     0 0 0 1px rgba(148, 163, 184, 0.12);
@@ -96,7 +96,7 @@ body {
 
 .chat-header-title {
   position: relative;
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -104,7 +104,7 @@ body {
 .chat-header-subtitle {
   position: relative;
   margin-top: 0.35rem;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   opacity: 0.9;
 }
 
@@ -143,16 +143,16 @@ body {
 
 .chat-bubble {
   max-width: 80%;
-  padding: 0.65rem 0.9rem;
+  padding: 0.8rem 1.1rem;
   border-radius: 1rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.4;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
 }
 
 .chat-bubble-bot {
   background-color: var(--color-bot-bubble);
-  color: #0f172a;
+  color: #020617;
   border-bottom-left-radius: 0.35rem;
 }
 
@@ -160,6 +160,29 @@ body {
   background-color: var(--color-primary);
   color: #f9fafb;
   border-bottom-right-radius: 0.35rem;
+}
+
+/* Teks highlight di dalam bubble (link / kata penting) */
+.chat-highlight {
+  color: #2563eb; /* atau #1d4ed8 */
+  font-weight: 600;
+}
+
+/* Teks sekunder kecil (timestamp, status terkirim) */
+.chat-meta {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.chat-bubble-bot .chat-meta {
+  color: #2563eb;
+}
+
+.chat-bubble-user .chat-meta {
+  color: #e0f2fe;
 }
 
 .chat-error {
