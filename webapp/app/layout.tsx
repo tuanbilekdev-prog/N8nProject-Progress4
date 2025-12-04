@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "n8n Chatbot WebApp",
-  description: "Simple WebApp → Webhook → n8n → OpenAI"
+  title: "Dev AI",
+  description: "Smart help, fast solution"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

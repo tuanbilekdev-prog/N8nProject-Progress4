@@ -76,9 +76,9 @@ export default function HomePage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="chat-container">
         <header className="chat-header">
-          <div className="chat-header-title">n8n Chatbot</div>
+          <div className="chat-header-title">Dev AI</div>
           <p className="chat-header-subtitle">
-            Local WebApp → Webhook → n8n → OpenAI
+            Smart help, fast solution
           </p>
         </header>
 
