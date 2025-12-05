@@ -13,7 +13,7 @@ export default function HomePage() {
     {
       id: 1,
       from: "bot",
-      text: "Halo! Kirim pertanyaanmu dan aku akan meneruskannya ke n8n + OpenAI 🚀"
+      text: "Yooo! Dev siap nemenin kamu mikir!"
     }
   ]);
   const [input, setInput] = useState("");
