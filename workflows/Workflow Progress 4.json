@@ -1,173 +1,192 @@
 {
-    "name": "Workflow Progress 4",
+    "name": "Project-4",
     "nodes": [
       {
         "parameters": {
-          "folderId": {
+          "mode": "insert",
+          "pineconeIndex": {
             "__rl": true,
-            "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
-            "mode": "list"
+            "value": "n8n",
+            "mode": "list",
+            "cachedResultName": "n8n"
           },
-          "triggerOn": "file",
           "options": {}
         },
-        "type": "n8n-nodes-base.googleDriveTrigger",
-        "typeVersion": 1,
-        "position": [0, 0],
-        "id": "google-drive-trigger-001",
-        "name": "Google Drive Trigger",
-        "webhookId": "webhook-drive-001",
+        "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+        "typeVersion": 1.3,
+        "position": [
+          320,
+          -16
+        ],
+        "id": "962c0763-f109-436e-bde8-d3dd931ce4ee",
+        "name": "Pinecone Vector Store",
         "credentials": {
-          "googleDriveOAuth2Api": {
-            "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
-            "name": "Google Drive account"
+          "pineconeApi": {
+            "id": "v351ZZTYbXApLXdK",
+            "name": "PineconeApi account"
           }
         }
       },
       {
         "parameters": {
-          "fileId": "={{ $json.id }}",
-          "options": {
-            "download": true
-          }
+          "options": {}
         },
-        "type": "n8n-nodes-base.googleDrive",
-        "typeVersion": 2,
-        "position": [200, 0],
-        "id": "google-drive-download-001",
-        "name": "Download File",
+        "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          208,
+          192
+        ],
+        "id": "36d1a7fa-8275-414f-b39e-f25461c647c5",
+        "name": "Embeddings OpenAI",
         "credentials": {
-          "googleDriveOAuth2Api": {
-            "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
-            "name": "Google Drive account"
+          "openAiApi": {
+            "id": "xxIFR8IkLMnlaljf",
+            "name": "OpenAi account"
           }
         }
       },
       {
         "parameters": {
-          "operation": "extractText",
-          "binaryPropertyName": "data",
+          "dataType": "binary",
+          "textSplittingMode": "custom",
           "options": {}
         },
-        "type": "n8n-nodes-base.extractFromFile",
-        "typeVersion": 1,
-        "position": [400, 0],
-        "id": "extract-text-001",
-        "name": "Extract Text"
+        "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+        "typeVersion": 1.1,
+        "position": [
+          576,
+          160
+        ],
+        "id": "c94e8f15-ad75-4d51-8d46-9cd99e292a59",
+        "name": "Default Data Loader"
       },
       {
         "parameters": {
-          "text": "={{ $json.data }}",
-          "chunkSize": 1000,
+          "chunkSize": 3000,
           "chunkOverlap": 200,
           "options": {}
         },
-        "type": "n8n-nodes-base.splitOut",
+        "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
         "typeVersion": 1,
-        "position": [600, 0],
-        "id": "split-text-001",
-        "name": "Split Text into Chunks"
+        "position": [
+          528,
+          320
+        ],
+        "id": "a8c158b1-1589-4a46-8934-b67578d51359",
+        "name": "Recursive Character Text Splitter1"
       },
       {
         "parameters": {
-          "resource": "textEmbedding",
-          "operation": "embed",
-          "text": "={{ $json.text }}",
-          "model": "text-embedding-3-small",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.openAi",
-        "typeVersion": 1,
-        "position": [800, 0],
-        "id": "openai-embedding-001",
-        "name": "Generate Embedding",
-        "credentials": {
-          "openAiApi": {
-            "id": "YOUR_OPENAI_CREDENTIAL_ID",
-            "name": "OpenAI account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "operation": "upsert",
-          "index": "YOUR_PINECONE_INDEX_NAME",
-          "vectors": "={{ [{\n  \"id\": $json.metadata?.chunkId || $runIndex.toString(),\n  \"values\": $json.embedding || $json.data,\n  \"metadata\": {\n    \"text\": $json.text || $json.data,\n    \"source\": $('Google Drive Trigger').item.json.name,\n    \"fileId\": $('Google Drive Trigger').item.json.id,\n    \"chunkIndex\": $runIndex\n  }\n}] }}",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.pinecone",
-        "typeVersion": 1,
-        "position": [1000, 0],
-        "id": "pinecone-upsert-001",
-        "name": "Upsert to Pinecone",
-        "credentials": {
-          "pineconeApi": {
-            "id": "YOUR_PINECONE_CREDENTIAL_ID",
-            "name": "Pinecone account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "operation": "insert",
-          "tableId": {
+          "operation": "download",
+          "fileId": {
             "__rl": true,
-            "value": "documents",
-            "mode": "list"
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "file_id": "={{ $('Google Drive Trigger').item.json.id }}",
-              "file_name": "={{ $('Google Drive Trigger').item.json.name }}",
-              "file_type": "={{ $('Google Drive Trigger').item.json.mimeType }}",
-              "chunk_id": "={{ $json.metadata?.chunkId || $runIndex.toString() }}",
-              "chunk_index": "={{ $runIndex }}",
-              "chunk_text": "={{ $json.text || $json.data }}",
-              "embedding_model": "text-embedding-3-small",
-              "pinecone_id": "={{ $json.metadata?.chunkId || $runIndex.toString() }}",
-              "created_at": "={{ $now }}"
-            }
+            "value": "1iUuTdiHcvMITBhC1rJSkBuN5nQR0TOHJ",
+            "mode": "list",
+            "cachedResultName": "_QUIZ CPMK 3 MATEMATIKA DISKRIT.pdf",
+            "cachedResultUrl": "https://drive.google.com/file/d/1iUuTdiHcvMITBhC1rJSkBuN5nQR0TOHJ/view?usp=drivesdk"
           },
           "options": {}
         },
-        "type": "n8n-nodes-base.supabase",
-        "typeVersion": 1,
-        "position": [1200, 0],
-        "id": "supabase-insert-001",
-        "name": "Save to Supabase",
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          144,
+          -16
+        ],
+        "id": "51de9f59-c113-4f8c-8229-cecb0b2cbf7b",
+        "name": "Download file",
         "credentials": {
-          "supabaseApi": {
-            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
-            "name": "Supabase account"
+          "googleDriveOAuth2Api": {
+            "id": "Il74xYqqem9Tcnah",
+            "name": "Google Drive account"
           }
         }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -64,
+          -16
+        ],
+        "id": "d7076862-c714-486d-9e42-369971617d8a",
+        "name": "When clicking ‘Execute workflow’"
       }
     ],
+    "pinData": {},
     "connections": {
-      "Google Drive Trigger": {
-        "main": [[{ "node": "Download File", "type": "main", "index": 0 }]]
+      "Pinecone Vector Store": {
+        "main": [
+          []
+        ]
       },
-      "Download File": {
-        "main": [[{ "node": "Extract Text", "type": "main", "index": 0 }]]
+      "Embeddings OpenAI": {
+        "ai_embedding": [
+          [
+            {
+              "node": "Pinecone Vector Store",
+              "type": "ai_embedding",
+              "index": 0
+            }
+          ]
+        ]
       },
-      "Extract Text": {
-        "main": [[{ "node": "Split Text into Chunks", "type": "main", "index": 0 }]]
+      "Default Data Loader": {
+        "ai_document": [
+          [
+            {
+              "node": "Pinecone Vector Store",
+              "type": "ai_document",
+              "index": 0
+            }
+          ]
+        ]
       },
-      "Split Text into Chunks": {
-        "main": [[{ "node": "Generate Embedding", "type": "main", "index": 0 }]]
+      "Recursive Character Text Splitter1": {
+        "ai_textSplitter": [
+          [
+            {
+              "node": "Default Data Loader",
+              "type": "ai_textSplitter",
+              "index": 0
+            }
+          ]
+        ]
       },
-      "Generate Embedding": {
-        "main": [[{ "node": "Upsert to Pinecone", "type": "main", "index": 0 }]]
+      "Download file": {
+        "main": [
+          [
+            {
+              "node": "Pinecone Vector Store",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       },
-      "Upsert to Pinecone": {
-        "main": [[{ "node": "Save to Supabase", "type": "main", "index": 0 }]]
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Download file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "active": false,
     "settings": {
       "executionOrder": "v1"
     },
-    "id": "workflow-progress-4-id",
+    "versionId": "a716739e-4e70-422b-b9c4-4d126e5fc953",
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "7914ccb7bb2f24eb0fdaa2f11a6b1abd1e19772a85d1c983f9962d993b09b0e2"
+    },
+    "id": "0o2aDgGrvgmvGCL7",
     "tags": []
   }
