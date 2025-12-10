@@ -1,0 +1,173 @@
+{
+    "name": "Workflow Progress 4",
+    "nodes": [
+      {
+        "parameters": {
+          "folderId": {
+            "__rl": true,
+            "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+            "mode": "list"
+          },
+          "triggerOn": "file",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDriveTrigger",
+        "typeVersion": 1,
+        "position": [0, 0],
+        "id": "google-drive-trigger-001",
+        "name": "Google Drive Trigger",
+        "webhookId": "webhook-drive-001",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fileId": "={{ $json.id }}",
+          "options": {
+            "download": true
+          }
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 2,
+        "position": [200, 0],
+        "id": "google-drive-download-001",
+        "name": "Download File",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+            "name": "Google Drive account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "extractText",
+          "binaryPropertyName": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1,
+        "position": [400, 0],
+        "id": "extract-text-001",
+        "name": "Extract Text"
+      },
+      {
+        "parameters": {
+          "text": "={{ $json.data }}",
+          "chunkSize": 1000,
+          "chunkOverlap": 200,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [600, 0],
+        "id": "split-text-001",
+        "name": "Split Text into Chunks"
+      },
+      {
+        "parameters": {
+          "resource": "textEmbedding",
+          "operation": "embed",
+          "text": "={{ $json.text }}",
+          "model": "text-embedding-3-small",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.openAi",
+        "typeVersion": 1,
+        "position": [800, 0],
+        "id": "openai-embedding-001",
+        "name": "Generate Embedding",
+        "credentials": {
+          "openAiApi": {
+            "id": "YOUR_OPENAI_CREDENTIAL_ID",
+            "name": "OpenAI account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "index": "YOUR_PINECONE_INDEX_NAME",
+          "vectors": "={{ [{\n  \"id\": $json.metadata?.chunkId || $runIndex.toString(),\n  \"values\": $json.embedding || $json.data,\n  \"metadata\": {\n    \"text\": $json.text || $json.data,\n    \"source\": $('Google Drive Trigger').item.json.name,\n    \"fileId\": $('Google Drive Trigger').item.json.id,\n    \"chunkIndex\": $runIndex\n  }\n}] }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.pinecone",
+        "typeVersion": 1,
+        "position": [1000, 0],
+        "id": "pinecone-upsert-001",
+        "name": "Upsert to Pinecone",
+        "credentials": {
+          "pineconeApi": {
+            "id": "YOUR_PINECONE_CREDENTIAL_ID",
+            "name": "Pinecone account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "insert",
+          "tableId": {
+            "__rl": true,
+            "value": "documents",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "file_id": "={{ $('Google Drive Trigger').item.json.id }}",
+              "file_name": "={{ $('Google Drive Trigger').item.json.name }}",
+              "file_type": "={{ $('Google Drive Trigger').item.json.mimeType }}",
+              "chunk_id": "={{ $json.metadata?.chunkId || $runIndex.toString() }}",
+              "chunk_index": "={{ $runIndex }}",
+              "chunk_text": "={{ $json.text || $json.data }}",
+              "embedding_model": "text-embedding-3-small",
+              "pinecone_id": "={{ $json.metadata?.chunkId || $runIndex.toString() }}",
+              "created_at": "={{ $now }}"
+            }
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [1200, 0],
+        "id": "supabase-insert-001",
+        "name": "Save to Supabase",
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Google Drive Trigger": {
+        "main": [[{ "node": "Download File", "type": "main", "index": 0 }]]
+      },
+      "Download File": {
+        "main": [[{ "node": "Extract Text", "type": "main", "index": 0 }]]
+      },
+      "Extract Text": {
+        "main": [[{ "node": "Split Text into Chunks", "type": "main", "index": 0 }]]
+      },
+      "Split Text into Chunks": {
+        "main": [[{ "node": "Generate Embedding", "type": "main", "index": 0 }]]
+      },
+      "Generate Embedding": {
+        "main": [[{ "node": "Upsert to Pinecone", "type": "main", "index": 0 }]]
+      },
+      "Upsert to Pinecone": {
+        "main": [[{ "node": "Save to Supabase", "type": "main", "index": 0 }]]
+      }
+    },
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "id": "workflow-progress-4-id",
+    "tags": []
+  }
