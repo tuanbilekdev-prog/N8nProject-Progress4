@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 
 type Message = {
   id: number;
@@ -19,6 +19,27 @@ export default function HomePage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Dark/Light mode state
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "dark" | "light" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    } else {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }, []);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -74,6 +95,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="theme-toggle"
+        aria-label="Toggle theme"
+        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {theme === "dark" ? "☀️" : "🌙"}
+      </button>
+
       <div className="chat-container">
         <header className="chat-header">
           <div className="chat-header-title">Dev AI</div>
@@ -97,9 +128,6 @@ export default function HomePage() {
                     }`}
                   >
                     {message.text}
-                    <span className="chat-meta">
-                      {isUser ? "Kamu" : "Bot • n8n + OpenAI"}
-                    </span>
                   </div>
                 </div>
               );
@@ -124,13 +152,6 @@ export default function HomePage() {
             {loading ? "Mengirim..." : "Kirim"}
           </button>
         </form>
-
-        <footer className="chat-footer">
-          <span className="dot online" />
-          <span className="chat-footer-text">
-            Terhubung ke webhook n8n (set `N8N_WEBHOOK_URL` di .env.local)
-          </span>
-        </footer>
       </div>
     </div>
   );
